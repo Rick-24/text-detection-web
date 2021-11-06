@@ -1,0 +1,175 @@
+<template>
+  <el-container>
+    <el-aside width="50%" class="col">
+      <el-upload
+        action="http://localhost:8001/text/detection"
+        accept="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        multiple
+        :limit="1"
+        :on-preview="handlePreview"
+        :on-remove="handleRemove"
+        :on-change="handelOnChange"
+        :file-list="fileList"
+        :auto-upload="false">
+        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+        <el-button style="margin-left: 10px;" size="small" type="success" @click="file" ref="file_upload_button">
+          上传到服务器
+        </el-button>
+        <div slot="tip" class="el-upload__tip">只能上传docx文件，且不超过500kb</div>
+
+      </el-upload>
+      <el-input
+        class="el-textarea"
+        type="textarea"
+        :rows="20"
+        placeholder="请输入内容"
+        v-html="contents">
+      </el-input>
+    </el-aside>
+    <el-main class="col">
+      <el-collapse v-for="(item,index) in errorInfo" :key="item.id">
+        <!--        匹配到：第{{ item.segmentNum }}段,第{{ item.sentenceNum }}句-->
+        <el-collapse-item :title="item.display" name="index" class="error_div">
+          <template slot="title">
+            成功匹配：第{{ item.segmentNum }}段,第{{ item.sentenceNum }}句<i class="el-icon-s-promotion"
+                                                                    @click="goAnchor('#anchor-'+index)"></i>
+          </template>
+          <div><b>上级规则：</b>{{ item.text }}</div>
+          <div><b>原文：</b>{{ item.input }}</div>
+        </el-collapse-item>
+      </el-collapse>
+    </el-main>
+  </el-container>
+
+</template>
+
+<script>
+import axios from 'axios'
+import mock from '@/mock/index.js'
+import mammoth from 'mammoth'
+
+export default {
+  data() {
+    return {
+      fileList: [],
+      form: {
+        file: ''
+      },
+      contents: '',
+      errorInfo: [],
+    };
+  },
+  name: "Home",
+  methods: {
+    file() {
+      this.$refs.file_upload_button.loading = "true"
+      const that = this
+      let formData = new FormData()
+      formData.append('file', this.form.file)
+      this.$api.textDetection.file(formData).then(function (res) {
+        console.log(res)
+        that.errorInfo = res.value.detectionModels
+        console.log(that.errorInfo)
+        that.$refs.file_upload_button.loading = "false"
+        that.errorDisplay()
+      }).catch(function (res) {
+        that.errorInfo = res.value.detectionModels;
+        console.log(that.errorInfo)
+        that.$refs.file_upload_button.loading = "false"
+      })
+    },
+    handleRemove(file, fileList) {
+      this.contents = ''
+      this.errorInfo = []
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handelOnChange(file, fileList) {
+      let reader = new FileReader();
+      const that = this
+      this.form.file = file.raw
+      reader.onloadend = function (event) {
+        let arrayBuffer = this.result;
+
+        mammoth.convertToHtml({arrayBuffer: arrayBuffer})
+          .then(function (resultObject) {
+            that.contents = resultObject.value;
+            that.contentsProcess();
+          });
+      };
+
+      reader.readAsArrayBuffer(file.raw);
+    },
+    contentsProcess() {
+      // /<\/?.+?>/gi
+      // /\<\/p\>/gi
+      let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
+      this.lengthOfContents = strList.length;
+      console.log(strList.length);
+      for (let i = 0; i < this.errorInfo.length; i++) {
+        let segmentNum = this.errorInfo[i].segmentNum;
+        let sentenceNum = this.errorInfo[i].sentenceNum;
+        if (strList.length < segmentNum) {
+          alert("there is no segment " + segmentNum + ", so it won't be emphasized ");
+          continue;
+        }
+
+        let processedSegment = strList[segmentNum - 1].split("。");
+        processedSegment.splice(sentenceNum - 1, 0, "<strong style='color: #2e6da4'>");
+        processedSegment.splice(sentenceNum + 1, 0, "</strong>");
+        strList.splice(segmentNum - 1, 1, processedSegment.join(""));
+      }
+      this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
+
+    },
+    errorDisplay() {
+      // /<\/?.+?>/gi
+      // /\<\/p\>/gi
+      let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
+      this.lengthOfContents = strList.length;
+      console.log(strList.length);
+      for (let i = 0; i < this.errorInfo.length; i++) {
+        let segmentNum = this.errorInfo[i].segmentNum;
+        let sentenceNum = this.errorInfo[i].sentenceNum;
+        if (strList.length < segmentNum) {
+          alert("there is no segment " + segmentNum + ", so it won't be emphasized ");
+          continue;
+        }
+
+        let processedSegment = strList[segmentNum - 1].split("。");
+        let anchor = "<strong style='color: #2e6da4' id=\"anchor-" + i + "\">"
+        processedSegment.splice(sentenceNum - 1, 0, anchor);
+        processedSegment.splice(sentenceNum + 1, 0, "</strong>");
+        strList.splice(segmentNum - 1, 1, processedSegment.join(""));
+      }
+      this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
+    },
+    goAnchor(selector) {
+      console.log(selector)
+      let offsetTop = document.querySelector(selector).offsetTop;
+      document.querySelector(".el-textarea").scrollTop = offsetTop
+    }
+  }
+}
+</script>
+
+<style scoped>
+.el-textarea {
+  text-align: left;
+  margin-top: 10px;
+  overflow: auto;
+  height: 525px;
+  background-color: white;
+}
+
+.col {
+  background: #f5f5f5;
+  height: 600px
+}
+
+.error_div {
+  text-align: left;
+}
+</style>
