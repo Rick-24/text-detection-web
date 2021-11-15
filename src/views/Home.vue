@@ -18,6 +18,7 @@
         <div slot="tip" class="el-upload__tip">只能上传docx文件，且不超过500kb</div>
 
       </el-upload>
+      <el-button type="primary" @click="province"></el-button>
       <el-input
         class="el-textarea"
         type="textarea"
@@ -65,6 +66,8 @@ export default {
       this.$refs.file_upload_button.loading = "true"
       const that = this
       let formData = new FormData()
+      // todo remove
+      formData.append('areaCode',"210211")
       formData.append('file', this.form.file)
       this.$api.textDetection.file(formData).then(function (res) {
         console.log(res)
@@ -150,7 +153,16 @@ export default {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
       document.querySelector(".el-textarea").scrollTop = offsetTop
+    },
+    province() {
+      this.$api.areaIndex.province().then(function (res) {
+        console.log(res)
+
+      }).catch(function (res) {
+        console.log(res)
+      })
     }
+
   }
 }
 </script>

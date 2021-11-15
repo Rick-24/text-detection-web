@@ -20,7 +20,7 @@ export function file() {
     errorCode: null
   };
   return {
-    url : 'text/detection',
+    url : 'text/detection/file',
     type : 'post',
     data : data
   }

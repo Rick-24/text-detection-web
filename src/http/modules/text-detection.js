@@ -1,13 +1,13 @@
 import axios from '../axios'
 
 /*
- * 操作日志模块
+ * 文件上传模块
  */
 
-// 删除
+// 文件上传
 export const file = (data) => {
   return axios({
-    url: '/text/detection/file',
+    url: '/text/detection/fileV2',
     method: 'post',
     headers: {
       'Content-Type': 'multipart/form-data'
@@ -15,7 +15,7 @@ export const file = (data) => {
     data
   })
 }
-// 分页查询
+// 文本上传
 export const text = (data) => {
   return axios({
     url: '/text/detection/text',
