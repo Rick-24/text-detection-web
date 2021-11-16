@@ -1,24 +1,31 @@
 <template>
   <el-container>
     <el-aside width="50%" class="col">
-      <el-upload
-        action="http://localhost:8001/text/detection"
-        accept="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        multiple
-        :limit="1"
-        :on-preview="handlePreview"
-        :on-remove="handleRemove"
-        :on-change="handelOnChange"
-        :file-list="fileList"
-        :auto-upload="false">
-        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-        <el-button style="margin-left: 10px;" size="small" type="success" @click="file" ref="file_upload_button">
-          上传到服务器
-        </el-button>
-        <div slot="tip" class="el-upload__tip">只能上传docx文件，且不超过500kb</div>
+      <el-row>
+        <el-upload
+          style="float:left;margin-left: 15px;margin-top: 10px"
+          action="http://localhost:8001/text/detection"
+          accept="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          multiple
+          :limit="1"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :on-change="handleOnChange"
+          :file-list="fileList"
+          :auto-upload="false">
+          <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+          <el-button style="margin-left: 10px;" size="small" type="success" @click="file" ref="file_upload_button">
+            上传到服务器并解析
+          </el-button>
+          <div slot="tip" class="el-upload__tip">只能上传docx文件，且不超过500kb</div>
 
-      </el-upload>
-      <el-button type="primary" @click="province"></el-button>
+        </el-upload>
+      </el-row>
+
+      <el-row>
+        <AreaCode v-on:getAreaCode="getAreaCode" ref="AreaCode"></AreaCode>
+      </el-row>
+
       <el-input
         class="el-textarea"
         type="textarea"
@@ -26,6 +33,7 @@
         placeholder="请输入内容"
         v-html="contents">
       </el-input>
+
     </el-aside>
     <el-main class="col">
       <el-collapse v-for="(item,index) in errorInfo" :key="item.id">
@@ -48,8 +56,10 @@
 import axios from 'axios'
 import mock from '@/mock/index.js'
 import mammoth from 'mammoth'
+import AreaCode from "./components/AreaCode";
 
 export default {
+  name: "Home",
   data() {
     return {
       fileList: [],
@@ -58,17 +68,22 @@ export default {
       },
       contents: '',
       errorInfo: [],
+      areaCode: [],
+      ifReset:false
     };
   },
-  name: "Home",
+  components:{
+    AreaCode
+  },
   methods: {
     file() {
       this.$refs.file_upload_button.loading = "true"
       const that = this
       let formData = new FormData()
       // todo remove
-      formData.append('areaCode',"210211")
+      formData.append('areaCode',this.areaCode)
       formData.append('file', this.form.file)
+      if(this.areaCode.length===0) alert("请提供解析范围")
       this.$api.textDetection.file(formData).then(function (res) {
         console.log(res)
         that.errorInfo = res.value.detectionModels
@@ -82,6 +97,7 @@ export default {
       })
     },
     handleRemove(file, fileList) {
+      this.$refs.AreaCode.resetCheckList()
       this.contents = ''
       this.errorInfo = []
       console.log(file, fileList);
@@ -89,7 +105,7 @@ export default {
     handlePreview(file) {
       console.log(file);
     },
-    handelOnChange(file, fileList) {
+    handleOnChange(file, fileList) {
       let reader = new FileReader();
       const that = this
       this.form.file = file.raw
@@ -161,6 +177,9 @@ export default {
       }).catch(function (res) {
         console.log(res)
       })
+    },
+    getAreaCode(areaCode){
+      this.areaCode=areaCode
     }
 
   }
