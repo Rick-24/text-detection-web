@@ -1,5 +1,6 @@
 <template>
   <el-container>
+
     <el-aside width="50%" class="col">
       <el-row>
         <el-upload
@@ -18,7 +19,6 @@
             上传到服务器并解析
           </el-button>
           <div slot="tip" class="el-upload__tip">只能上传docx文件，且不超过500kb</div>
-
         </el-upload>
       </el-row>
 
@@ -26,16 +26,20 @@
         <AreaCode v-on:getAreaCode="getAreaCode" ref="AreaCode"></AreaCode>
       </el-row>
 
-      <el-input
-        class="el-textarea"
-        type="textarea"
-        :rows="20"
-        placeholder="请输入内容"
-        v-html="contents">
-      </el-input>
+      <el-row>
+        <el-input
+          class="el-textarea"
+          type="textarea"
+          :rows="20"
+          placeholder="请输入内容"
+          v-html="contents">
+        </el-input>
+      </el-row>
+
 
     </el-aside>
-    <el-main class="col">
+
+    <el-main class="col" :width="widthControlled">
       <el-collapse v-for="(item,index) in errorInfo" :key="item.id">
         <!--        匹配到：第{{ item.segmentNum }}段,第{{ item.sentenceNum }}句-->
         <el-collapse-item :title="item.display" name="index" class="error_div">
@@ -48,6 +52,7 @@
         </el-collapse-item>
       </el-collapse>
     </el-main>
+
   </el-container>
 
 </template>
@@ -62,6 +67,7 @@ export default {
   name: "Home",
   data() {
     return {
+      widthControlled:"50%",
       fileList: [],
       form: {
         file: ''
@@ -78,24 +84,25 @@ export default {
   methods: {
     file() {
       this.$refs.file_upload_button.loading = "true"
-      const that = this
       let formData = new FormData()
       // todo remove
       formData.append('areaCode',this.areaCode)
       formData.append('file', this.form.file)
-      if(this.areaCode.length===0) alert("请提供解析范围")
-      this.$api.textDetection.file(formData).then(function (res) {
+      if(this.areaCode.every((current,index,array)=>{
+        return current===""
+      })) alert("请提供解析范围")
+      this.$api.textDetection.file(formData).then( (res) => {
         console.log(res)
-        that.errorInfo = res.value.detectionModels
-        console.log(that.errorInfo)
-        that.$refs.file_upload_button.loading = "false"
-        that.errorDisplay()
-      }).catch(function (res) {
-        that.errorInfo = res.value.detectionModels;
-        console.log(that.errorInfo)
-        that.$refs.file_upload_button.loading = "false"
+        this.errorInfo = res.value.detectionModels
+        this.$refs.file_upload_button.loading = "false"
+        this.errorDisplay()
+      }).catch( (res)=> {
+        this.errorInfo = res.value.detectionModels;
+        console.log(this.errorInfo)
+        this.$refs.file_upload_button.loading = "false"
       })
     },
+
     handleRemove(file, fileList) {
       this.$refs.AreaCode.resetCheckList()
       this.contents = ''

@@ -1,9 +1,9 @@
 <template>
   <el-container style="margin-top: 10px">
     <el-checkbox-group v-model="checkList" size="small" style="margin-left: 15px">
-      <el-checkbox-button label="province"></el-checkbox-button>
-      <el-checkbox-button label="city"></el-checkbox-button>
-      <el-checkbox-button label="district"></el-checkbox-button>
+      <el-checkbox-button :label="0" >province</el-checkbox-button>
+      <el-checkbox-button :label="1" >city</el-checkbox-button>
+      <el-checkbox-button :label="2" >district</el-checkbox-button>
     </el-checkbox-group>
     <el-cascader
       v-model="path"
@@ -11,7 +11,6 @@
       placeholder="请选择匹配区域和等级"
       ref="current"
       size="small"
-      expand-trigger="hover"
       :options="province.options"
       :props="props"
       @active-item-change="handleItemChange"
@@ -24,29 +23,36 @@
 export default {
   name: "AreaCode",
   model: {
-    prop: 'areaCode',
     event: 'selectedChange'
   },
   data () {
     return {
-      // 所在省市
       province: {
         options: []
       },
-      props: { // 级联选择器的属性配置
+      props: {
         value: 'value',
         children: 'next',
         checkStrictly: true
       },
       checkList:[],
-      path:[]
+      path:["","",""]
     }
   },
   computed: {},
   created () {
     this._initData()
   },
-  mounted () {
+  watch:{
+    checkList:{
+      deep:true,
+      immediate:true,
+      handler(newVal){
+        this.$emit("getAreaCode",newVal.map((current,index,array)=>{
+          return this.path[current]
+        }))
+      }
+    }
   },
   methods: {
     _initData() {
@@ -111,11 +117,8 @@ export default {
     selectedChange(val){
       if(val.length<3) {
         alert("请将匹配精确到区,然后在复选框选择匹配范围")
+        this.resetCheckList()
       } else {
-        console.log(this.checkList)
-        if(this.checkList.indexOf("province")===-1) val[0]=""
-        if(this.checkList.indexOf("city")===-1) val[1]=""
-        if(this.checkList.indexOf("district")===-1) val[2]=""
         this.$emit("getAreaCode",val)
       }
     },
@@ -129,5 +132,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>
