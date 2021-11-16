@@ -1,22 +1,22 @@
 <template>
   <el-container style="margin-top: 10px">
-        <el-cascader
-          v-model="path"
-          style="margin-left: 15px"
-          placeholder="请选择匹配区域和等级"
-          ref="current"
-          size="small"
-          expand-trigger="hover"
-          :options="province.options"
-          :props="props"
-          @active-item-change="handleItemChange"
-          @change="selectedChange">
-        </el-cascader>
-        <el-checkbox-group v-model="checkList" size="small" style="margin-left: 15px">
-          <el-checkbox-button label="province"></el-checkbox-button>
-          <el-checkbox-button label="city"></el-checkbox-button>
-          <el-checkbox-button label="district"></el-checkbox-button>
-        </el-checkbox-group>
+    <el-checkbox-group v-model="checkList" size="small" style="margin-left: 15px">
+      <el-checkbox-button label="province"></el-checkbox-button>
+      <el-checkbox-button label="city"></el-checkbox-button>
+      <el-checkbox-button label="district"></el-checkbox-button>
+    </el-checkbox-group>
+    <el-cascader
+      v-model="path"
+      style="margin-left: 15px"
+      placeholder="请选择匹配区域和等级"
+      ref="current"
+      size="small"
+      expand-trigger="hover"
+      :options="province.options"
+      :props="props"
+      @active-item-change="handleItemChange"
+      @change="selectedChange">
+    </el-cascader>
   </el-container>
 </template>
 
@@ -112,6 +112,7 @@ export default {
       if(val.length<3) {
         alert("请将匹配精确到区,然后在复选框选择匹配范围")
       } else {
+        console.log(this.checkList)
         if(this.checkList.indexOf("province")===-1) val[0]=""
         if(this.checkList.indexOf("city")===-1) val[1]=""
         if(this.checkList.indexOf("district")===-1) val[2]=""
