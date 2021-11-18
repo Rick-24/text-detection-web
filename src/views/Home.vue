@@ -174,7 +174,7 @@ export default {
         let segmentNum = this.errorInfo[i].segmentNum;
         let sentenceNum = this.errorInfo[i].sentenceNum;
         if (strList.length < segmentNum) {
-          alert("there is no segment " + segmentNum + ", so it won't be emphasized ");
+          console.log("there is no segment " + segmentNum + ", so it won't be emphasized ");
           continue;
         }
 
@@ -197,12 +197,12 @@ export default {
           let segmentNum = errorInfoResult[j].inputSegment;
           let sentenceNum = errorInfoResult[j].inputSentenceNum;
           if (this.lengthOfContents < segmentNum) {
-            alert("there is no segment-" + segmentNum + ", so it won't be emphasized ");
+            console.log("there is no segment-" + segmentNum + ", so it won't be emphasized ");
             continue;
           }
           let processedSegment = strList[segmentNum - 1].split("。");
           if(processedSegment.length < sentenceNum){
-            alert("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ");
+            console.log("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ");
             continue;
           }
           let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i*100+j}'>`
