@@ -223,8 +223,6 @@ export default {
       return strList
     },
     errorDisplay() {
-      // /<\/?.+?>/gi
-      // /\<\/p\>/gi
       let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
       this.lengthOfContents = strList.length;
       console.log("confirm strList",strList)
