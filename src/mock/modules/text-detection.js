@@ -7,6 +7,6 @@ export function file() {
   return {
     url : 'text/detection/fileV2',
     type : 'post',
-    data : data
+    data : JSON.parse(data)
   }
 }

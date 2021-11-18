@@ -118,7 +118,7 @@ export default {
           }).catch(function (res) {
             console.log(res)
           })
-        },100)
+        },300)
       }
 
     },

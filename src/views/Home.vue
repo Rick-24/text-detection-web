@@ -40,17 +40,51 @@
     </el-aside>
 
     <el-main class="col" :width="widthControlled">
-      <el-collapse v-for="(item,index) in errorInfo" :key="item.id">
-        <!--        匹配到：第{{ item.segmentNum }}段,第{{ item.sentenceNum }}句-->
-        <el-collapse-item :title="item.display" name="index" class="error_div">
-          <template slot="title">
-            成功匹配：第{{ item.segmentNum }}段,第{{ item.sentenceNum }}句<i class="el-icon-s-promotion"
-                                                                    @click="goAnchor('#anchor-'+index)"></i>
+      <el-collapse :accordion="true">
+        <el-collapse-item v-for="(item,indexI) in errorInfo.provinceModel" :key="item.ruleName" name="indexI" class="error_div" >
+          <template slot="title" >
+            <strong style="color: #2c3e50">匹配省级文件:{{item.ruleName}}</strong>
           </template>
-          <div><b>上级规则：</b>{{ item.text }}</div>
-          <div><b>原文：</b>{{ item.input }}</div>
+          <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
+            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorProvince-'+(indexI*100+indexJ))"></i>
+            </p>
+            <p>上级规则: {{rules.text}}</p>
+            <p>原文: {{rules.input}}</p>
+          </div>
         </el-collapse-item>
       </el-collapse>
+
+      <el-collapse>
+        <el-collapse-item v-for="(item,index) in errorInfo.cityModel" :key="item.ruleName" name="index" class="error_div" >
+          <template slot="title" >
+            <strong style="color: #2c3e50">匹配市级文件:{{item.ruleName}}</strong>
+          </template>
+          <div v-for="(rules,index) in item.fileResult" :key="index">
+            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorCity-'+index)"></i>
+            </p>
+            <p>上级规则: {{rules.text}}</p>
+            <p>原文: {{rules.input}}</p>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+
+      <el-collapse>
+        <el-collapse-item v-for="(item,index) in errorInfo.districtModel" :key="item.ruleName" name="index" class="error_div" >
+          <template slot="title" >
+            <strong style="color: #2c3e50">匹配区级文件:{{item.ruleName}}</strong>
+          </template>
+          <div v-for="(rules,index) in item.fileResult" :key="index">
+            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorDistrict-'+index)"></i>
+            </p>
+            <p>上级规则: {{rules.text}}</p>
+            <p>原文: {{rules.input}}</p>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+
     </el-main>
 
   </el-container>
@@ -75,7 +109,7 @@ export default {
       contents: '',
       errorInfo: [],
       areaCode: [],
-      ifReset: false
+      ifReset: false,
     };
   },
   components: {
@@ -95,13 +129,12 @@ export default {
         return current === ""
       })) alert("请提供解析范围")
       this.$api.textDetection.file(formData).then((res) => {
-        console.log(res)
+        console.log("response province model",res)
         this.errorInfo = res.value
         this.$refs.file_upload_button.loading = "false"
         this.errorDisplay()
       }).catch((res) => {
-        this.errorInfo = res.value.detectionModels;
-        console.log(this.errorInfo)
+        console.log("error",res)
         this.$refs.file_upload_button.loading = "false"
       })
     },
@@ -125,12 +158,12 @@ export default {
         mammoth.convertToHtml({arrayBuffer: arrayBuffer})
           .then(function (resultObject) {
             that.contents = resultObject.value;
-            that.contentsProcess();
+            //that.errorDisplay();
           });
       };
-
       reader.readAsArrayBuffer(file.raw);
     },
+
     contentsProcess() {
       // /<\/?.+?>/gi
       // /\<\/p\>/gi
@@ -153,40 +186,51 @@ export default {
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
 
     },
+
+    processForEach(anchor,errorInfoList,strList){
+      // console.log("confirm errorInfoResult",errorInfoList)
+      // console.log("check for errorInfoList length",errorInfoList.length)
+      // console.log("check for errorInfoResult length",errorInfoResult.length)
+      for (let i = 0; i < errorInfoList.length; i++) {
+        const errorInfoResult=errorInfoList[i].fileResult
+        for(let j = 0; j < errorInfoResult.length; j++){
+          let segmentNum = errorInfoResult[j].inputSegment;
+          let sentenceNum = errorInfoResult[j].inputSentenceNum;
+          if (this.lengthOfContents < segmentNum) {
+            alert("there is no segment-" + segmentNum + ", so it won't be emphasized ");
+            continue;
+          }
+          let processedSegment = strList[segmentNum - 1].split("。");
+          if(processedSegment.length < sentenceNum){
+            alert("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ");
+            continue;
+          }
+          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i*100+j}'>`
+          processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
+          processedSegment.splice(sentenceNum + 1, 0, "</strong>");
+          strList.splice(segmentNum - 1, 1, processedSegment.join(""));
+        }
+      }
+      return strList
+    },
     errorDisplay() {
       // /<\/?.+?>/gi
       // /\<\/p\>/gi
       let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
       this.lengthOfContents = strList.length;
-      console.log(strList.length);
-      for (let i = 0; i < this.errorInfo.length; i++) {
-        let segmentNum = this.errorInfo[i].segmentNum;
-        let sentenceNum = this.errorInfo[i].sentenceNum;
-        if (strList.length < segmentNum) {
-          alert("there is no segment " + segmentNum + ", so it won't be emphasized ");
-          continue;
-        }
-
-        let processedSegment = strList[segmentNum - 1].split("。");
-        let anchor = "<strong style='color: #2e6da4' id=\"anchor-" + i + "\">"
-        processedSegment.splice(sentenceNum - 1, 0, anchor);
-        processedSegment.splice(sentenceNum + 1, 0, "</strong>");
-        strList.splice(segmentNum - 1, 1, processedSegment.join(""));
-      }
+      console.log("confirm strList",strList)
+      this.processForEach("anchorProvince-",this.errorInfo.provinceModel,strList)
+      console.log("confirm strList after pro",strList)
+      this.processForEach("anchorCity-",this.errorInfo.cityModel,strList)
+      console.log("confirm strList after city",strList)
+      this.processForEach("anchorDistrict-",this.errorInfo.districtModel,strList)
+      console.log("confirm strList after dis",strList)
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
     },
     goAnchor(selector) {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
       document.querySelector(".el-textarea").scrollTop = offsetTop
-    },
-    province() {
-      this.$api.areaIndex.province().then(function (res) {
-        console.log(res)
-
-      }).catch(function (res) {
-        console.log(res)
-      })
     },
     getAreaCode(areaCode) {
       this.areaCode = areaCode
