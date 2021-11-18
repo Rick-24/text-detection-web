@@ -40,7 +40,7 @@
     </el-aside>
 
     <el-main class="col" :width="widthControlled">
-      <el-collapse :accordion="true" v-for="(item,indexI) in errorInfo.provinceModel" :key="item.ruleName">
+      <el-collapse v-for="(item,indexI) in errorInfo.provinceModel" :key="'pro'+indexI+item.ruleName">
         <el-collapse-item  name="indexI" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配省级文件:{{item.ruleName}}</strong>
@@ -55,14 +55,14 @@
         </el-collapse-item>
       </el-collapse>
 
-      <el-collapse v-for="(item,index) in errorInfo.cityModel" :key="item.ruleName" >
-        <el-collapse-item  name="index" class="error_div" >
+      <el-collapse v-for="(item,indexI) in errorInfo.cityModel" :key="'city'+indexI+item.ruleName" >
+        <el-collapse-item  name="indexI" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配市级文件:{{item.ruleName}}</strong>
           </template>
-          <div v-for="(rules,index) in item.fileResult" :key="index">
+          <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
             <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
-              <i class="el-icon-s-promotion" @click="goAnchor('#anchorCity-'+index)"></i>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorCity-'+(indexI*100+indexJ))"></i>
             </p>
             <p>上级规则: {{rules.text}}</p>
             <p>原文: {{rules.input}}</p>
@@ -70,14 +70,14 @@
         </el-collapse-item>
       </el-collapse>
 
-      <el-collapse v-for="(item,index) in errorInfo.districtModel" :key="item.ruleName">
-        <el-collapse-item v-for="(item,index) in errorInfo.districtModel" :key="item.ruleName" name="index" class="error_div" >
+      <el-collapse v-for="(item,indexI) in errorInfo.districtModel" :key="'dis'+indexI+item.ruleName">
+        <el-collapse-item name="indexI" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配区级文件:{{item.ruleName}}</strong>
           </template>
-          <div v-for="(rules,index) in item.fileResult" :key="index">
+          <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
             <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
-              <i class="el-icon-s-promotion" @click="goAnchor('#anchorDistrict-'+index)"></i>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorDistrict-'+(indexI*100+indexJ))"></i>
             </p>
             <p>上级规则: {{rules.text}}</p>
             <p>原文: {{rules.input}}</p>
@@ -200,15 +200,24 @@ export default {
             console.log("there is no segment-" + segmentNum + ", so it won't be emphasized ");
             continue;
           }
-          let processedSegment = strList[segmentNum - 1].split("。");
+          let processedSegment = strList[segmentNum - 1].split("。").filter(item => item !== '')
           if(processedSegment.length < sentenceNum){
-            console.log("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ");
+            console.log("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ")
             continue;
           }
           let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i*100+j}'>`
           processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
           processedSegment.splice(sentenceNum + 1, 0, "</strong>");
-          strList.splice(segmentNum - 1, 1, processedSegment.join(""));
+          let processedSegmentTmp=""
+          if(sentenceNum!==1){
+            processedSegmentTmp+=processedSegment.slice(0,sentenceNum-1).join("。")+"。"
+          }
+          processedSegmentTmp+= processedSegment.slice(sentenceNum-1,sentenceNum+2).join("")+"。"+
+                                processedSegment.slice(sentenceNum+2).join("。")
+          // console.log("processedSegment",processedSegment)
+          // console.log("processedSegment join",processedSegment.join("。"))
+          // console.log("processedSegment",processedSegmentTmp)
+          strList.splice(segmentNum - 1, 1,processedSegmentTmp );
         }
       }
       return strList
@@ -230,10 +239,6 @@ export default {
     goAnchor(selector) {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
-      if(!offsetTop){
-        console.log("no anchor:",selector)
-        return
-      }
       document.querySelector(".el-textarea").scrollTop = offsetTop
     },
     getAreaCode(areaCode) {
