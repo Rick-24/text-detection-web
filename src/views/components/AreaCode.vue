@@ -68,6 +68,7 @@ export default {
           return {
             value: item.code,
             label: item.name,
+            id: item.id,
             next: []
           }
         })
@@ -84,12 +85,13 @@ export default {
       if(val.length===1){
         if(provinceSelected.next.length!==0) return
         setTimeout(item =>{
-          this.$api.areaIndex.city(provinceSelected.value).then((res)=> {
+          this.$api.areaIndex.city(provinceSelected.id).then((res)=> {
             console.log("cities",res)
             provinceSelected.next = res.value.models.map(item => {
               return {
                 value: item.code,
                 label: item.name,
+                id: item.id,
                 next: []
               }
             })
@@ -104,12 +106,13 @@ export default {
         const citySelected=provinceSelected.next[matchCity]
         if(citySelected.next.length!==0) return
         setTimeout(item =>{
-          this.$api.areaIndex.district(citySelected.value).then((res)=> {
+          this.$api.areaIndex.district(citySelected.id).then((res)=> {
             console.log("districts",res)
             citySelected.next = res.value.models.map(item => {
               return {
                 value: item.code,
                 label: item.name,
+                id: item.id
               }
             })
           }).catch(function (res) {
@@ -120,17 +123,20 @@ export default {
 
     },
     selectedChange(val){
+      console.log(val)
       const localPath=JSON.parse(JSON.stringify(val))
       if (val.length<3) {
         this.resetCheckList()
         alert("请将匹配精确到区,然后在复选框选择匹配范围")
       } else if(this.checkList.length===0){
+        val[3] = val[2]
         this.$emit("getAreaCode",val)
         console.log("emitted",val)
       } else {
         if(this.checkList.indexOf(0)===-1) localPath[0]=""
         if(this.checkList.indexOf(1)===-1) localPath[1]=""
         if(this.checkList.indexOf(2)===-1) localPath[2]=""
+        localPath[3] = val[2]
         this.$emit("getAreaCode",localPath)
         console.log("emitted",localPath)
       }

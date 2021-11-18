@@ -67,7 +67,7 @@ export default {
   name: "Home",
   data() {
     return {
-      widthControlled:"50%",
+      widthControlled: "50%",
       fileList: [],
       form: {
         file: ''
@@ -75,10 +75,10 @@ export default {
       contents: '',
       errorInfo: [],
       areaCode: [],
-      ifReset:false
+      ifReset: false
     };
   },
-  components:{
+  components: {
     AreaCode
   },
   methods: {
@@ -86,17 +86,20 @@ export default {
       this.$refs.file_upload_button.loading = "true"
       let formData = new FormData()
       // todo remove
-      formData.append('areaCode',this.areaCode)
+      let area = [this.areaCode[0], this.areaCode[1], this.areaCode[2]]
+      console.log(area)
+      formData.append('areaCode', this.areaCode[3])
+      formData.append('matchList',area.toString())
       formData.append('file', this.form.file)
-      if(this.areaCode.every((current,index,array)=>{
-        return current===""
+      if (this.areaCode.every((current, index, array) => {
+        return current === ""
       })) alert("请提供解析范围")
-      this.$api.textDetection.file(formData).then( (res) => {
+      this.$api.textDetection.file(formData).then((res) => {
         console.log(res)
-        this.errorInfo = res.value.detectionModels
+        this.errorInfo = res.value
         this.$refs.file_upload_button.loading = "false"
         this.errorDisplay()
-      }).catch( (res)=> {
+      }).catch((res) => {
         this.errorInfo = res.value.detectionModels;
         console.log(this.errorInfo)
         this.$refs.file_upload_button.loading = "false"
@@ -185,8 +188,8 @@ export default {
         console.log(res)
       })
     },
-    getAreaCode(areaCode){
-      this.areaCode=areaCode
+    getAreaCode(areaCode) {
+      this.areaCode = areaCode
     }
 
   }

@@ -16,7 +16,7 @@ export const city = (data) => {
   return axios({
     url: '/area/city',
     method: 'get',
-    data: data
+    params: {'id': data}
   })
 }
 
@@ -24,6 +24,6 @@ export const district = (data) => {
   return axios({
     url: '/area/district',
     method: 'get',
-    data: data
+    params: {'id': data}
   })
 }
