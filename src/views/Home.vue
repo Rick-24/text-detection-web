@@ -40,8 +40,8 @@
     </el-aside>
 
     <el-main class="col" :width="widthControlled">
-      <el-collapse :accordion="true">
-        <el-collapse-item v-for="(item,indexI) in errorInfo.provinceModel" :key="item.ruleName" name="indexI" class="error_div" >
+      <el-collapse :accordion="true" v-for="(item,indexI) in errorInfo.provinceModel" :key="item.ruleName">
+        <el-collapse-item  name="indexI" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配省级文件:{{item.ruleName}}</strong>
           </template>
@@ -55,8 +55,8 @@
         </el-collapse-item>
       </el-collapse>
 
-      <el-collapse>
-        <el-collapse-item v-for="(item,index) in errorInfo.cityModel" :key="item.ruleName" name="index" class="error_div" >
+      <el-collapse v-for="(item,index) in errorInfo.cityModel" :key="item.ruleName" >
+        <el-collapse-item  name="index" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配市级文件:{{item.ruleName}}</strong>
           </template>
@@ -70,7 +70,7 @@
         </el-collapse-item>
       </el-collapse>
 
-      <el-collapse>
+      <el-collapse v-for="(item,index) in errorInfo.districtModel" :key="item.ruleName">
         <el-collapse-item v-for="(item,index) in errorInfo.districtModel" :key="item.ruleName" name="index" class="error_div" >
           <template slot="title" >
             <strong style="color: #2c3e50">匹配区级文件:{{item.ruleName}}</strong>
@@ -230,6 +230,10 @@ export default {
     goAnchor(selector) {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
+      if(!offsetTop){
+        console.log("no anchor:",selector)
+        return
+      }
       document.querySelector(".el-textarea").scrollTop = offsetTop
     },
     getAreaCode(areaCode) {
