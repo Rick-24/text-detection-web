@@ -48,9 +48,14 @@ export default {
       deep:true,
       immediate:true,
       handler(newVal){
-        this.$emit("getAreaCode",newVal.map((current,index,array)=>{
-          return this.path[current]
-        }))
+        const localPath = JSON.parse(JSON.stringify(this.path))
+        if(newVal.indexOf(0)===-1) localPath[0]=""
+        if(newVal.indexOf(1)===-1) localPath[1]=""
+        if(newVal.indexOf(2)===-1) localPath[2]=""
+        // this.$emit("getAreaCode",newVal.map((current,index,array)=>{
+        //   return this.path[current]}))
+        this.$emit("getAreaCode",localPath)
+        console.log("emitted",localPath)
       }
     }
   },
@@ -115,11 +120,19 @@ export default {
 
     },
     selectedChange(val){
-      if(val.length<3) {
-        alert("请将匹配精确到区,然后在复选框选择匹配范围")
+      const localPath=JSON.parse(JSON.stringify(val))
+      if (val.length<3) {
         this.resetCheckList()
-      } else {
+        alert("请将匹配精确到区,然后在复选框选择匹配范围")
+      } else if(this.checkList.length===0){
         this.$emit("getAreaCode",val)
+        console.log("emitted",val)
+      } else {
+        if(this.checkList.indexOf(0)===-1) localPath[0]=""
+        if(this.checkList.indexOf(1)===-1) localPath[1]=""
+        if(this.checkList.indexOf(2)===-1) localPath[2]=""
+        this.$emit("getAreaCode",localPath)
+        console.log("emitted",localPath)
       }
     },
     resetCheckList(){
