@@ -41,46 +41,46 @@
 
     <el-main class="col" :width="widthControlled">
       <el-collapse v-for="(item,indexI) in errorInfo.provinceModel" :key="'pro'+indexI+item.ruleName">
-        <el-collapse-item  name="indexI" class="error_div" >
-          <template slot="title" >
-            <strong style="color: #2c3e50">匹配省级文件:{{item.ruleName}}</strong>
+        <el-collapse-item name="indexI" class="error_div">
+          <template slot="title">
+            <strong style="color: #2c3e50">匹配省级文件:{{ item.ruleName }}</strong>
           </template>
           <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
-            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
-              <i class="el-icon-s-promotion" @click="goAnchor('#anchorProvince-'+(indexI*100+indexJ))"></i>
+            <p><strong style="color: red">匹配到第{{ rules.inputSegment }}段，第{{ rules.inputSentenceNum }}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorProvince-'+indexI+indexJ)"></i>
             </p>
-            <p>上级规则: {{rules.text}}</p>
-            <p>原文: {{rules.input}}</p>
+            <p>上级规则: {{ rules.text }}</p>
+            <p>原文: {{ rules.input }}</p>
           </div>
         </el-collapse-item>
       </el-collapse>
 
-      <el-collapse v-for="(item,indexI) in errorInfo.cityModel" :key="'city'+indexI+item.ruleName" >
-        <el-collapse-item  name="indexI" class="error_div" >
-          <template slot="title" >
-            <strong style="color: #2c3e50">匹配市级文件:{{item.ruleName}}</strong>
+      <el-collapse v-for="(item,indexI) in errorInfo.cityModel" :key="'city'+indexI+item.ruleName">
+        <el-collapse-item name="indexI" class="error_div">
+          <template slot="title">
+            <strong style="color: #2c3e50">匹配市级文件:{{ item.ruleName }}</strong>
           </template>
           <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
-            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
-              <i class="el-icon-s-promotion" @click="goAnchor('#anchorCity-'+(indexI*100+indexJ))"></i>
+            <p><strong style="color: red">匹配到第{{ rules.inputSegment }}段，第{{ rules.inputSentenceNum }}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorCity-'+indexI+indexJ)"></i>
             </p>
-            <p>上级规则: {{rules.text}}</p>
-            <p>原文: {{rules.input}}</p>
+            <p>上级规则: {{ rules.text }}</p>
+            <p>原文: {{ rules.input }}</p>
           </div>
         </el-collapse-item>
       </el-collapse>
 
       <el-collapse v-for="(item,indexI) in errorInfo.districtModel" :key="'dis'+indexI+item.ruleName">
-        <el-collapse-item name="indexI" class="error_div" >
-          <template slot="title" >
-            <strong style="color: #2c3e50">匹配区级文件:{{item.ruleName}}</strong>
+        <el-collapse-item name="indexI" class="error_div">
+          <template slot="title">
+            <strong style="color: #2c3e50">匹配区级文件:{{ item.ruleName }}</strong>
           </template>
           <div v-for="(rules,indexJ) in item.fileResult" :key="indexJ">
-            <p><strong style="color: red">匹配到第{{rules.inputSegment}}段，第{{rules.inputSentenceNum}}句.</strong>
-              <i class="el-icon-s-promotion" @click="goAnchor('#anchorDistrict-'+(indexI*100+indexJ))"></i>
+            <p><strong style="color: red">匹配到第{{ rules.inputSegment }}段，第{{ rules.inputSentenceNum }}句.</strong>
+              <i class="el-icon-s-promotion" @click="goAnchor('#anchorDistrict-'+indexI+indexJ)"></i>
             </p>
-            <p>上级规则: {{rules.text}}</p>
-            <p>原文: {{rules.input}}</p>
+            <p>上级规则: {{ rules.text }}</p>
+            <p>原文: {{ rules.input }}</p>
           </div>
         </el-collapse-item>
       </el-collapse>
@@ -123,18 +123,18 @@ export default {
       let area = [this.areaCode[0], this.areaCode[1], this.areaCode[2]]
       console.log(area)
       formData.append('areaCode', this.areaCode[3])
-      formData.append('matchList',area.toString())
+      formData.append('matchList', area.toString())
       formData.append('file', this.form.file)
       if (this.areaCode.every((current, index, array) => {
         return current === ""
       })) alert("请提供解析范围")
       this.$api.textDetection.file(formData).then((res) => {
-        console.log("response province model",res)
+        console.log("response province model", res)
         this.errorInfo = res.value
         this.$refs.file_upload_button.loading = "false"
         this.errorDisplay()
       }).catch((res) => {
-        console.log("error",res)
+        console.log("error", res)
         this.$refs.file_upload_button.loading = "false"
       })
     },
@@ -187,13 +187,13 @@ export default {
 
     },
 
-    processForEach(anchor,errorInfoList,strList){
+    processForEach(anchor, errorInfoList, strList) {
       // console.log("confirm errorInfoResult",errorInfoList)
       // console.log("check for errorInfoList length",errorInfoList.length)
       // console.log("check for errorInfoResult length",errorInfoResult.length)
       for (let i = 0; i < errorInfoList.length; i++) {
-        const errorInfoResult=errorInfoList[i].fileResult
-        for(let j = 0; j < errorInfoResult.length; j++){
+        const errorInfoResult = errorInfoList[i].fileResult
+        for (let j = 0; j < errorInfoResult.length; j++) {
           let segmentNum = errorInfoResult[j].inputSegment;
           let sentenceNum = errorInfoResult[j].inputSentenceNum;
           if (this.lengthOfContents < segmentNum) {
@@ -201,23 +201,23 @@ export default {
             continue;
           }
           let processedSegment = strList[segmentNum - 1].split("。").filter(item => item !== '')
-          if(processedSegment.length < sentenceNum){
-            console.log("the sentence-" + sentenceNum + " is not in segment-"+segmentNum+", so it won't be emphasized ")
+          if (processedSegment.length < sentenceNum) {
+            console.log("the sentence-" + sentenceNum + " is not in segment-" + segmentNum + ", so it won't be emphasized ")
             continue;
           }
-          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i*100+j}'>`
+          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i}${j}'>`
           processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
           processedSegment.splice(sentenceNum + 1, 0, "</strong>");
-          let processedSegmentTmp=""
-          if(sentenceNum!==1){
-            processedSegmentTmp+=processedSegment.slice(0,sentenceNum-1).join("。")+"。"
+          let processedSegmentTmp = ""
+          if (sentenceNum !== 1) {
+            processedSegmentTmp += processedSegment.slice(0, sentenceNum - 1).join("。") + "。"
           }
-          processedSegmentTmp+= processedSegment.slice(sentenceNum-1,sentenceNum+2).join("")+"。"+
-                                processedSegment.slice(sentenceNum+2).join("。")
+          processedSegmentTmp += processedSegment.slice(sentenceNum - 1, sentenceNum + 2).join("") + "。" +
+            processedSegment.slice(sentenceNum + 2).join("。")
           // console.log("processedSegment",processedSegment)
           // console.log("processedSegment join",processedSegment.join("。"))
           // console.log("processedSegment",processedSegmentTmp)
-          strList.splice(segmentNum - 1, 1,processedSegmentTmp );
+          strList.splice(segmentNum - 1, 1, processedSegmentTmp);
         }
       }
       return strList
@@ -225,13 +225,13 @@ export default {
     errorDisplay() {
       let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
       this.lengthOfContents = strList.length;
-      console.log("confirm strList",strList)
-      this.processForEach("anchorProvince-",this.errorInfo.provinceModel,strList)
-      console.log("confirm strList after pro",strList)
-      this.processForEach("anchorCity-",this.errorInfo.cityModel,strList)
-      console.log("confirm strList after city",strList)
-      this.processForEach("anchorDistrict-",this.errorInfo.districtModel,strList)
-      console.log("confirm strList after dis",strList)
+      console.log("confirm strList", strList)
+      this.processForEach("anchorProvince-", this.errorInfo.provinceModel, strList)
+      console.log("confirm strList after pro", strList)
+      this.processForEach("anchorCity-", this.errorInfo.cityModel, strList)
+      console.log("confirm strList after city", strList)
+      this.processForEach("anchorDistrict-", this.errorInfo.districtModel, strList)
+      console.log("confirm strList after dis", strList)
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
     },
     goAnchor(selector) {
