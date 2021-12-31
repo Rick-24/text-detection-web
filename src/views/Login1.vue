@@ -55,10 +55,10 @@
             <el-descriptions :title="sentenceSpec.ruleName" :column="2" :size="mini" border>
               <el-descriptions-item label="段号">
                 <el-tag size="small">{{ sentenceSpec.ruleSegmentNum }}</el-tag>
-                </el-descriptions-item>
+              </el-descriptions-item>
               <el-descriptions-item label="行号">
                 <el-tag size="small">{{ sentenceSpec.ruleSentenceNum}}</el-tag>
-                </el-descriptions-item>
+              </el-descriptions-item>
               <el-descriptions-item label="文本">{{sentenceSpec.text}}</el-descriptions-item>
 
             </el-descriptions>
