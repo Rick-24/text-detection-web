@@ -91,7 +91,12 @@ export default {
       });
     },
     refreshCaptcha: function () {
-      this.loginForm.src = this.global.baseUrl + "/captcha.jpg?t=" + new Date().getTime();
+      this.loginForm.src = this.global.baseUrl + "/captcha.jpg?t=" + new Date().getTime()
+      let item = sessionStorage.getItem('JSESSIONID')
+      console.log(item)
+
+      let jsessionid = Cookies.get('JSESSIONID');
+      console.log(jsessionid)
     },
     reset() {
       this.$refs.loginForm.resetFields()

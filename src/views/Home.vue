@@ -1,19 +1,23 @@
 <template>
   <div class="container">
-<!--    &lt;!&ndash; 导航菜单栏 &ndash;&gt;-->
-<!--    <nav-bar></nav-bar>-->
+    <!-- 导航菜单栏 -->
+    <nav-bar></nav-bar>
     <!-- 头部区域 -->
     <head-bar></head-bar>
-<!--    &lt;!&ndash; 主内容区域 &ndash;&gt;-->
-<!--    <main-content></main-content>-->
+    <!-- 主内容区域 -->
+    <main-content></main-content>
     </div>
 </template>
 
 <script>
 import HeadBar from "./HeadBar"
+import NavBar from "./NavBar"
+import MainContent from "./MainContent";
 export default {
   components:{
     HeadBar,
+    NavBar,
+    MainContent
 
 
   }

@@ -77,10 +77,10 @@
 import axios from 'axios'
 import mock from '@/mock/index.js'
 import mammoth from 'mammoth'
-import AreaCode from "./components/AreaCode";
+import AreaCode from "../components/AreaCode";
 
 export default {
-  name: "Home",
+  name: "Compliance",
   data() {
     return {
       widthControlled: "50%",
@@ -239,8 +239,8 @@ export default {
 }
 
 .col {
-  background: #f5f5f5;
-  height: 600px
+  /*background: #f5f5f5;*/
+  /*height: 600px*/
 }
 
 .error_div {
