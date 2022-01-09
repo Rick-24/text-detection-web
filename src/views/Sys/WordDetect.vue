@@ -28,7 +28,7 @@
         </el-select>
       </el-row>
 
-      <el-row>
+      <el-row >
         <el-input
           class="el-textarea"
           type="textarea"
@@ -46,6 +46,7 @@
         <el-collapse-item name="indexI" class="error_div">
           <template slot="title">
             原文第<strong>{{ item.segmentNum }}</strong>段 - 第<strong>{{ item.sentenceNum }}</strong>句
+            <i class="el-icon-s-promotion" @click="goAnchor('#keyWord'+item.segmentNum+'-'+item.sentenceNum)"></i>
           </template>
 
           <el-descriptions :column="1" :size="mini" border>
@@ -159,15 +160,11 @@ export default {
 
     },
 
-    processForEach(anchor, errorInfoList, strList) {
-      // console.log("confirm errorInfoResult",errorInfoList)
-      // console.log("check for errorInfoList length",errorInfoList.length)
-      // console.log("check for errorInfoResult length",errorInfoResult.length)
-      for (let i = 0; i < errorInfoList.length; i++) {
-        const errorInfoResult = errorInfoList[i].fileResult
-        for (let j = 0; j < errorInfoResult.length; j++) {
-          let segmentNum = errorInfoResult[j].inputSegment;
-          let sentenceNum = errorInfoResult[j].inputSentenceNum;
+    processForEach(anchor, sentenceDTOs, strList) {
+      for (let i = 0; i < sentenceDTOs.length; i++) {
+        const sentenceSpecList = sentenceDTOs[i].sentenceSpecList
+          let segmentNum = sentenceDTOs[i].segmentNum;
+          let sentenceNum = sentenceDTOs[i].sentenceNum;
           if (this.lengthOfContents < segmentNum) {
             console.log("there is no segment-" + segmentNum + ", so it won't be emphasized ");
             continue;
@@ -177,9 +174,33 @@ export default {
             console.log("the sentence-" + sentenceNum + " is not in segment-" + segmentNum + ", so it won't be emphasized ")
             continue;
           }
-          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i}${j}'>`
+          let text = processedSegment[sentenceNum-1];
+          let dict ={}
+          sentenceSpecList.forEach(sentenceSpec =>{
+            let length = sentenceSpec.keyWord.length
+            sentenceSpec.startIndex.forEach(index =>{
+              if(dict[index] == null){
+                dict[index] = length
+              }else if(length>dict[index]){
+                dict[index] =length
+              }
+            })
+          })
+          let sentence = ''
+          let start = 0
+          for(let key in dict) {
+            sentence += text.substr(start,key-start) +"<strong style='color: #2e6da4'>"
+            sentence += text.substr(parseInt(key),dict[key]) + "</strong>"
+            start = parseInt(key) + dict[key]
+          }
+          sentence += text.substr(start,text.length-start)
+          console.log(sentence)
+          processedSegment[sentenceNum-1] =sentence;
+          // 颜色改变
+          let anchorTmp = `<strong id='${anchor}${segmentNum}-${sentenceNum}'>`
           processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
           processedSegment.splice(sentenceNum + 1, 0, "</strong>");
+          console.log(processedSegment)
           let processedSegmentTmp = ""
           if (sentenceNum !== 1) {
             processedSegmentTmp += processedSegment.slice(0, sentenceNum - 1).join("。") + "。"
@@ -191,25 +212,21 @@ export default {
           // console.log("processedSegment",processedSegmentTmp)
           strList.splice(segmentNum - 1, 1, processedSegmentTmp);
         }
-      }
+
       return strList
     },
     errorDisplay() {
       let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
       this.lengthOfContents = strList.length;
       console.log("confirm strList", strList)
-      this.processForEach("anchorProvince-", this.errorInfo.provinceModel, strList)
-      console.log("confirm strList after pro", strList)
-      this.processForEach("anchorCity-", this.errorInfo.cityModel, strList)
-      console.log("confirm strList after city", strList)
-      this.processForEach("anchorDistrict-", this.errorInfo.districtModel, strList)
-      console.log("confirm strList after dis", strList)
+      this.processForEach("keyWord", this.errorInfo, strList)
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
     },
     goAnchor(selector) {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
       document.querySelector(".el-textarea").scrollTop = offsetTop
+      event.stopPropagation();
     },
     getAreaCode(areaCode) {
       this.areaCode = areaCode
@@ -236,7 +253,7 @@ export default {
 
 .col {
   /*background: #f5f5f5;*/
-  /*height: 600px*/
+  height: 637px
 }
 
 .error_div {

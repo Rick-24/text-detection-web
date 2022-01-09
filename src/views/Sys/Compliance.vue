@@ -44,6 +44,7 @@
         <el-collapse-item name="indexI" class="error_div">
           <template slot="title">
             原文第<strong>{{item.segmentNum}}</strong>段 - 第<strong>{{item.sentenceNum}}</strong>句
+            <i class="el-icon-s-promotion" @click="goAnchor('#anchor-'+item.segmentNum+'-'+item.sentenceNum)"></i>
           </template>
 
           <el-descriptions  :column="1" :size="mini" border>
@@ -187,7 +188,7 @@ export default {
             console.log("the sentence-" + sentenceNum + " is not in segment-" + segmentNum + ", so it won't be emphasized ")
             continue;
           }
-          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${i}${j}'>`
+          let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${segmentNum}-${sentenceNum}'>`
           processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
           processedSegment.splice(sentenceNum + 1, 0, "</strong>");
           let processedSegmentTmp = ""
@@ -208,11 +209,11 @@ export default {
       let strList = this.contents.split(/<\/?p>/gi).filter(item => item !== '');
       this.lengthOfContents = strList.length;
       console.log("confirm strList", strList)
-      this.processForEach("anchorProvince-", this.errorInfo.provinceModel, strList)
+      this.processForEach("anchor-", this.errorInfo.provinceModel, strList)
       console.log("confirm strList after pro", strList)
-      this.processForEach("anchorCity-", this.errorInfo.cityModel, strList)
+      this.processForEach("anchor-", this.errorInfo.cityModel, strList)
       console.log("confirm strList after city", strList)
-      this.processForEach("anchorDistrict-", this.errorInfo.districtModel, strList)
+      this.processForEach("anchor-", this.errorInfo.districtModel, strList)
       console.log("confirm strList after dis", strList)
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
     },
@@ -220,6 +221,7 @@ export default {
       console.log(selector)
       let offsetTop = document.querySelector(selector).offsetTop;
       document.querySelector(".el-textarea").scrollTop = offsetTop
+      event.stopPropagation();
     },
     getAreaCode(areaCode) {
       this.areaCode = areaCode
@@ -240,7 +242,7 @@ export default {
 
 .col {
   /*background: #f5f5f5;*/
-  /*height: 600px*/
+  height: 637px
 }
 
 .error_div {
