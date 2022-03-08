@@ -20,7 +20,7 @@ export default {
       this.load()
     },
     load: function() {
-      this.loading = this.$loading({  
+      this.loading = this.$loading({
         lock: true,
         text: "loading...",
         spinner: "el-icon-loading",

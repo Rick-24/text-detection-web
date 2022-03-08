@@ -1,25 +1,23 @@
-import HelloWorld from '@/views/HelloWorld'
-import Home from '../views/Home'
-import Login from '@/views/Login'
 import Vue from 'vue'
 import Router from 'vue-router'
 import NotFound from '@/views/404'
 import Intro from '@/views/Intro/Intro'
 import api from '@/http/api'
 import store from '@/store'
-import { getIFramePath, getIFrameUrl } from '@/utils/iframe'
+import {getIFramePath, getIFrameUrl} from '@/utils/iframe'
+
 Vue.use(Router)
 
-const router =  new Router({
+const router = new Router({
   // mode: 'history',
   routes: [
     {
       path: '/',
       name: 'home',
-      component: resolve => require(['../views/Home.vue'],resolve),
-      children:[
+      component: resolve => require(['../views/Home.vue'], resolve),
+      children: [
         {
-          path:'',
+          path: '',
           name: '系统介绍',
           component: Intro,
           meta: {
@@ -32,7 +30,12 @@ const router =  new Router({
     {
       path: '/login',
       name: 'login',
-      component: resolve => require(['../views/Login.vue'],resolve),
+      component: resolve => require(['../views/Login.vue'], resolve),
+    },
+    {
+      path: '/404',
+      name: 'notFound',
+      component: NotFound
     }
   ]
 })
@@ -41,22 +44,31 @@ const router =  new Router({
 router.beforeEach((to, from, next) => {
   // 登录界面登录成功之后，会把用户信息保存在会话
   // 存在时间为会话生命周期，页面关闭即失效。
+
+  if(to.path==='/404'){
+    next()
+    return
+  }
   let userName = sessionStorage.getItem('user')
   if (to.path === '/login') {
     // 如果是访问登录界面，如果用户会话信息存在，代表已登录过，跳转到主页
-    if(userName) {
-      next({ path: '/' })
+    if (userName) {
+      next({path: '/'})
     } else {
       next()
     }
   } else {
     if (!userName) {
       // 如果访问非登录界面，且户会话信息不存在，代表未登录，则跳转到登录界面
-      next({ path: '/login' })
-    } else {
+      next({path: '/login'})
+    }else {
       // 加载动态菜单和路由
-      addDynamicMenuAndRoutes(userName, to, from)
-      next()
+      let b = addDynamicMenuAndRoutes(userName, to, from, next);
+      if (b) {
+        next()
+      }else {
+        next({path: '/404'})
+      }
     }
   }
 })
@@ -64,14 +76,21 @@ router.beforeEach((to, from, next) => {
 /**
  * 加载动态菜单和路由
  */
-function addDynamicMenuAndRoutes(userName, to, from) {
+function addDynamicMenuAndRoutes(userName, to, from, next) {
   // 处理IFrame嵌套页面
   handleIFrameUrl(to.path)
-  if(store.state.app.menuRouteLoaded) {
+  if (store.state.app.menuRouteLoaded) {
     console.log('动态菜单和路由已经存在.')
-    return
+    let length = router.options.routes[0].children.length
+    for (let i = 0; i < length; i++) {
+      if (to.path.substring(1,to.path.length) === router.options.routes[0].children[i].path) {
+        next()
+        return true
+      }
+    }
+    return false
   }
-  api.menu.findNavTree({'userName':userName})
+  api.menu.findNavTree({'userName': userName})
     .then(res => {
       // 添加动态路由
       let dynamicRoutes = addDynamicRoutes(res.data)
@@ -84,14 +103,15 @@ function addDynamicMenuAndRoutes(userName, to, from) {
       // 保存菜单树
       store.commit('setNavTree', res.data)
     }).then(res => {
-    api.user.findPermissions({'name':userName}).then(res => {
+    api.user.findPermissions({'name': userName}).then(res => {
       // 保存用户权限标识集合
       store.commit('setPerms', res.data)
       console.log(res.data)
     })
   })
-    .catch(function(res) {
+    .catch(function (res) {
     })
+  return true
 }
 
 /**
@@ -101,9 +121,9 @@ function handleIFrameUrl(path) {
   // 嵌套页面，保存iframeUrl到store，供IFrame组件读取展示
   let url = path
   let length = store.state.iframe.iframeUrls.length
-  for(let i=0; i<length; i++) {
+  for (let i = 0; i < length; i++) {
     let iframe = store.state.iframe.iframeUrls[i]
-    if(path != null && path.endsWith(iframe.path)) {
+    if (path != null && path.endsWith(iframe.path)) {
       url = iframe.url
       store.commit('setIFrameUrl', url)
       break
@@ -116,7 +136,7 @@ function handleIFrameUrl(path) {
  * @param {*} menuList 菜单列表
  * @param {*} routes 递归创建的动态(菜单)路由
  */
-function addDynamicRoutes (menuList = [], routes = []) {
+function addDynamicRoutes(menuList = [], routes = []) {
   var temp = []
   for (var i = 0; i < menuList.length; i++) {
     if (menuList[i].children && menuList[i].children.length >= 1) {
@@ -140,7 +160,7 @@ function addDynamicRoutes (menuList = [], routes = []) {
         route['component'] = resolve => require([`@/views/IFrame/IFrame`], resolve)
         // 存储嵌套页面路由路径和访问URL
         let url = getIFrameUrl(menuList[i].url)
-        let iFrameUrl = {'path':path, 'url':url}
+        let iFrameUrl = {'path': path, 'url': url}
         store.commit('addIFrameUrl', iFrameUrl)
       } else {
         try {
@@ -148,12 +168,13 @@ function addDynamicRoutes (menuList = [], routes = []) {
           // 如url="sys/user"，则组件路径应是"@/views/sys/user.vue",否则组件加载不到
           let array = menuList[i].url.split('/')
           let url = ''
-          for(let i=0; i<array.length; i++) {
-            url += array[i].substring(0,1).toUpperCase() + array[i].substring(1) + '/'
+          for (let i = 0; i < array.length; i++) {
+            url += array[i].substring(0, 1).toUpperCase() + array[i].substring(1) + '/'
           }
           url = url.substring(0, url.length - 1)
           route['component'] = resolve => require([`@/views/${url}`], resolve)
-        } catch (e) {}
+        } catch (e) {
+        }
       }
       routes.push(route)
     }

@@ -43,24 +43,24 @@
       <el-collapse v-for="(item,index) in errorInfo.sentenceModel" :key="'sentence'+index">
         <el-collapse-item name="indexI" class="error_div">
           <template slot="title">
-            原文第<strong>{{item.segmentNum}}</strong>段 - 第<strong>{{item.sentenceNum}}</strong>句
+            原文第<strong>{{ item.segmentNum }}</strong>段 - 第<strong>{{ item.sentenceNum }}</strong>句
             <i class="el-icon-s-promotion" @click="goAnchor('#anchor-'+item.segmentNum+'-'+item.sentenceNum)"></i>
           </template>
 
-          <el-descriptions  :column="1" :size="mini" border>
+          <el-descriptions :column="1" :size="mini" border>
             <el-descriptions-item label="输入原文" label-class-name="my-label">
               {{ item.input }}
             </el-descriptions-item>
           </el-descriptions>
-          <div v-for="sentenceSpec in item.sentenceSpecList" >
+          <div v-for="sentenceSpec in item.sentenceSpecList">
             <el-descriptions :title="sentenceSpec.ruleName" :column="2" :size="mini" border>
               <el-descriptions-item label="段号">
                 <el-tag size="small">{{ sentenceSpec.ruleSegmentNum }}</el-tag>
               </el-descriptions-item>
               <el-descriptions-item label="行号">
-                <el-tag size="small">{{ sentenceSpec.ruleSentenceNum}}</el-tag>
+                <el-tag size="small">{{ sentenceSpec.ruleSentenceNum }}</el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="文本">{{sentenceSpec.text}}</el-descriptions-item>
+              <el-descriptions-item label="文本">{{ sentenceSpec.text }}</el-descriptions-item>
 
             </el-descriptions>
           </div>
@@ -169,7 +169,39 @@ export default {
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
 
     },
+    processSentenceModel(anchor, errorInfoList, strList) {
+      // console.log("confirm errorInfoResult",errorInfoList)
+      // console.log("check for errorInfoList length",errorInfoList.length)
+      // console.log("check for errorInfoResult length",errorInfoResult.length)
+      for (let i = 0; i < errorInfoList.length; i++) {
+        let segmentNum =errorInfoList[i].segmentNum;
+        let sentenceNum = errorInfoList[i].sentenceNum;
+        if (this.lengthOfContents < segmentNum) {
+          console.log("there is no segment-" + segmentNum + ", so it won't be emphasized ");
+          continue;
+        }
+        let processedSegment = strList[segmentNum - 1].split("。").filter(item => item !== '')
+        if (processedSegment.length < sentenceNum) {
+          console.log("the sentence-" + sentenceNum + " is not in segment-" + segmentNum + ", so it won't be emphasized ")
+          continue;
+        }
+        let anchorTmp = `<strong style='color: #2e6da4' id='${anchor}${segmentNum}-${sentenceNum}'>`
+        processedSegment.splice(sentenceNum - 1, 0, anchorTmp);
+        processedSegment.splice(sentenceNum + 1, 0, "</strong>");
+        let processedSegmentTmp = ""
+        if (sentenceNum !== 1) {
+          processedSegmentTmp += processedSegment.slice(0, sentenceNum - 1).join("。") + "。"
+        }
+        processedSegmentTmp += processedSegment.slice(sentenceNum - 1, sentenceNum + 2).join("") + "。" +
+          processedSegment.slice(sentenceNum + 2).join("。")
+        // console.log("processedSegment",processedSegment)
+        // console.log("processedSegment join",processedSegment.join("。"))
+        // console.log("processedSegment",processedSegmentTmp)
+        strList.splice(segmentNum - 1, 1, processedSegmentTmp);
+      }
 
+      return strList
+    },
     processForEach(anchor, errorInfoList, strList) {
       // console.log("confirm errorInfoResult",errorInfoList)
       // console.log("check for errorInfoList length",errorInfoList.length)
@@ -215,6 +247,9 @@ export default {
       console.log("confirm strList after city", strList)
       this.processForEach("anchor-", this.errorInfo.districtModel, strList)
       console.log("confirm strList after dis", strList)
+
+      this.processSentenceModel("anchor-", this.errorInfo.sentenceModel, strList)
+      console.log("confirm strList after sentence", strList)
       this.contents = strList[0] + "<p>" + strList.slice(1).join("<\p><p>") + "</p>";
     },
     goAnchor(selector) {
@@ -248,6 +283,7 @@ export default {
 .error_div {
   text-align: left;
 }
+
 .my-label {
   background: #E1F3D8;
 }
