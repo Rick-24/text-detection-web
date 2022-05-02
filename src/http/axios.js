@@ -48,7 +48,26 @@ export default function $axios(options) {
     // response 响应拦截器
     instance.interceptors.response.use(
       response => {
-        return response.data
+        // 获取响应头信息
+        const headers = response.headers;
+        // 判断请求头中数据是不是json格式数据
+        let reg = RegExp(/application\/json/);
+        if (headers["content-type"].match(reg)) {
+          // 是的话使用这个函数解析
+          return response.data
+        } else {
+          // 不是的话使用 安装的第三方插件解析
+          let fileDownload = require("js-file-download");
+          // 获取响应中返回的字符串
+          //   console.log(headers["content-disposition"]);
+          let fileName = headers["content-disposition"]
+            .split(";")[1]
+            .split("filename=")[1];
+          let contentType = headers["content-type"];
+          // 使用下面的方法解析响应的数据
+          fileName = decodeURIComponent(fileName);
+          fileDownload(response.data, fileName, contentType);
+        }
       },
       err => {
         if (err && err.response) {

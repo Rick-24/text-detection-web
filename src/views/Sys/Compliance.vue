@@ -22,9 +22,9 @@
         </el-upload>
       </el-row>
 
-      <el-row>
-        <AreaCode v-on:getAreaCode="getAreaCode" ref="AreaCode"></AreaCode>
-      </el-row>
+      <!--      <el-row>-->
+      <!--        <AreaCode v-on:getAreaCode="getAreaCode" ref="AreaCode"></AreaCode>-->
+      <!--      </el-row>-->
 
       <el-row>
         <el-input
@@ -40,27 +40,46 @@
     </el-aside>
 
     <el-main class="col" :width="widthControlled">
-      <el-collapse v-for="(item,index) in errorInfo.sentenceModel" :key="'sentence'+index">
+      <el-collapse accordion v-for="(item,index) in errorInfo.sentenceModel" :key="'sentence'+index">
         <el-collapse-item name="indexI" class="error_div">
           <template slot="title">
             原文第<strong>{{ item.segmentNum }}</strong>段 - 第<strong>{{ item.sentenceNum }}</strong>句
             <i class="el-icon-s-promotion" @click="goAnchor('#anchor-'+item.segmentNum+'-'+item.sentenceNum)"></i>
           </template>
 
-          <el-descriptions :column="1" :size="mini" border>
-            <el-descriptions-item label="输入原文" label-class-name="my-label">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item  label-class-name="my-label">
+              <template slot="label">
+                <span class="file-item">输入原文</span>
+              </template>
               {{ item.input }}
             </el-descriptions-item>
           </el-descriptions>
           <div v-for="sentenceSpec in item.sentenceSpecList">
-            <el-descriptions :title="sentenceSpec.ruleName" :column="2" :size="mini" border>
-              <el-descriptions-item label="段号">
+
+            <el-descriptions  :column="2" border>
+              <template slot="title">
+                <span class="file-title">{{ sentenceSpec.ruleName }}</span>
+                <i @click="downloadFile(sentenceSpec.ruleFilePath)" class="download-icon el-icon-download" style="cursor: pointer"></i>
+              </template>
+              <el-descriptions-item >
+                <template slot="label">
+                  <span class="file-item">段号</span>
+                </template>
                 <el-tag size="small">{{ sentenceSpec.ruleSegmentNum }}</el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="行号">
+              <el-descriptions-item >
+                <template slot="label">
+                  <span class="file-item">行号</span>
+                </template>
                 <el-tag size="small">{{ sentenceSpec.ruleSentenceNum }}</el-tag>
               </el-descriptions-item>
-              <el-descriptions-item label="文本">{{ sentenceSpec.text }}</el-descriptions-item>
+              <el-descriptions-item >
+                <template slot="label">
+                  <span class="file-item">文本</span>
+                </template>
+                {{ sentenceSpec.text }}
+              </el-descriptions-item>
 
             </el-descriptions>
           </div>
@@ -103,14 +122,14 @@ export default {
       this.$refs.file_upload_button.loading = "true"
       let formData = new FormData()
       // todo remove
-      let area = [this.areaCode[0], this.areaCode[1], this.areaCode[2]]
-      console.log(area)
-      formData.append('areaCode', this.areaCode[3])
-      formData.append('matchList', area.toString())
+      // let area = [this.areaCode[0], this.areaCode[1], this.areaCode[2]]
+      // console.log(area)
+      // formData.append('areaCode', this.areaCode[3])
+      // formData.append('matchList', area.toString())
       formData.append('file', this.form.file)
-      if (this.areaCode.every((current, index, array) => {
-        return current === ""
-      })) alert("请提供解析范围")
+      // if (this.areaCode.every((current, index, array) => {
+      //   return current === ""
+      // })) alert("请提供解析范围")
       this.$api.textDetection.file(formData).then((res) => {
         console.log("response province model", res)
         this.errorInfo = res.value
@@ -120,6 +139,10 @@ export default {
         console.log("error", res)
         this.$refs.file_upload_button.loading = "false"
       })
+    },
+    downloadFile(filePath) {
+      console.log(filePath)
+      this.$api.download.downloadFile(filePath)
     },
 
     handleRemove(file, fileList) {
@@ -174,7 +197,7 @@ export default {
       // console.log("check for errorInfoList length",errorInfoList.length)
       // console.log("check for errorInfoResult length",errorInfoResult.length)
       for (let i = 0; i < errorInfoList.length; i++) {
-        let segmentNum =errorInfoList[i].segmentNum;
+        let segmentNum = errorInfoList[i].segmentNum;
         let sentenceNum = errorInfoList[i].sentenceNum;
         if (this.lengthOfContents < segmentNum) {
           console.log("there is no segment-" + segmentNum + ", so it won't be emphasized ");
@@ -284,6 +307,12 @@ export default {
   text-align: left;
 }
 
+.file-title {
+  font-size: 12px;
+}
+.file-item {
+  font-size: 8px;
+}
 .my-label {
   background: #E1F3D8;
 }

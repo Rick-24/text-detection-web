@@ -11,6 +11,7 @@ import * as role from './modules/role'
 import * as keyword from './modules/keyword'
 import * as keytype from './modules/keytype'
 import * as wordDetect from './modules/wordDetect'
+import * as download from './modules/download'
 // 默认全部导出
 export default {
   textDetection,
@@ -22,5 +23,6 @@ export default {
   role,
   keyword,
   keytype,
-  wordDetect
+  wordDetect,
+  download
 }
